@@ -42,6 +42,9 @@ jobs:
 
       - name: Verify runner architecture
         run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+
           Write-Host "PROCESSOR_ARCHITECTURE=$env:PROCESSOR_ARCHITECTURE"
           if ($env:PROCESSOR_ARCHITECTURE -ne "${{ matrix.processor_architecture }}") {
             throw "Expected runner architecture ${{ matrix.processor_architecture }}, but got $env:PROCESSOR_ARCHITECTURE."
@@ -49,21 +52,51 @@ jobs:
 
       - name: Install Scoop
         run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+
           Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-          Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+          $installerPath = Join-Path $env:RUNNER_TEMP 'install-scoop.ps1'
+          Invoke-WebRequest -Uri https://get.scoop.sh -OutFile $installerPath
+          & $installerPath
           "$env:USERPROFILE\scoop\shims" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
 
-      - name: Add local bucket
+      - name: Prepare local bucket
         run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+
           scoop --version
-          if (-not (Test-Path -LiteralPath "$env:GITHUB_WORKSPACE\bucket\git-kura.json")) {
-            throw "git-kura manifest was not found in local bucket checkout."
+
+          $sourceBucketPath = Join-Path $env:GITHUB_WORKSPACE 'bucket'
+          $sourceManifestPath = Join-Path $sourceBucketPath 'git-kura.json'
+          if (-not (Test-Path -LiteralPath $sourceManifestPath)) {
+            throw "git-kura manifest was not found in PR checkout: $sourceManifestPath"
           }
-          scoop bucket add philomagi-local "$env:GITHUB_WORKSPACE"
+
+          scoop bucket add philomagi-local https://github.com/tooppoo/catalog-scoop-bucket
+
+          $installedBucketPath = Join-Path $env:USERPROFILE 'scoop\buckets\philomagi-local'
+          $installedBucketManifestDir = Join-Path $installedBucketPath 'bucket'
+          if (-not (Test-Path -LiteralPath $installedBucketManifestDir)) {
+            throw "Scoop bucket directory was not found: $installedBucketManifestDir"
+          }
+
+          Remove-Item -LiteralPath $installedBucketManifestDir -Recurse -Force
+          Copy-Item -LiteralPath $sourceBucketPath -Destination $installedBucketManifestDir -Recurse -Force
+
+          $installedManifestPath = Join-Path $installedBucketManifestDir 'git-kura.json'
+          if (-not (Test-Path -LiteralPath $installedManifestPath)) {
+            throw "git-kura manifest was not copied to installed bucket: $installedManifestPath"
+          }
+
           scoop bucket list
 
       - name: Install git-kura from local bucket
         run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+
           scoop install philomagi-local/git-kura
           git-kura --version
 
@@ -74,6 +107,9 @@ jobs:
 
       - name: Uninstall git-kura
         run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+
           scoop uninstall git-kura
 
           $currentPath = Join-Path $env:USERPROFILE 'scoop\apps\git-kura\current'
@@ -92,12 +128,20 @@ jobs:
     steps:
       - name: Install Scoop
         run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+
           Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-          Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+          $installerPath = Join-Path $env:RUNNER_TEMP 'install-scoop.ps1'
+          Invoke-WebRequest -Uri https://get.scoop.sh -OutFile $installerPath
+          & $installerPath
           "$env:USERPROFILE\scoop\shims" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
 
       - name: Install git-kura from published bucket
         run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+
           scoop --version
           scoop bucket add philomagi https://github.com/tooppoo/catalog-scoop-bucket
           scoop bucket list
@@ -106,6 +150,9 @@ jobs:
 
       - name: Uninstall git-kura
         run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+
           scoop uninstall git-kura
 
           $currentPath = Join-Path $env:USERPROFILE 'scoop\apps\git-kura\current'
