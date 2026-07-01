@@ -21,13 +21,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: Update manifest
         id: update
-        shell: pwsh
         env:
           GIT_KURA_VERSION: ${{ inputs.version }}
         run: |
-          ./scripts/update-git-kura-manifest.ps1 -Version $env:GIT_KURA_VERSION
+          npx --yes tsx@4 scripts/update-git-kura-manifest.ts --version "$GIT_KURA_VERSION"
 
       - name: Validate generated diff
         run: |
