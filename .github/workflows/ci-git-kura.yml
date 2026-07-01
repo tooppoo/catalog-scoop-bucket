@@ -1,0 +1,161 @@
+name: CI git-kura
+
+on:
+  pull_request:
+    paths:
+      - bucket/git-kura.json
+      - .github/workflows/ci-git-kura.yml
+  push:
+    branches:
+      - main
+    paths:
+      - bucket/git-kura.json
+      - .github/workflows/ci-git-kura.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  local-bucket-install:
+    name: Local bucket install (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: windows-2025
+            processor_architecture: AMD64
+          - arch: arm64
+            runner: windows-11-arm
+            processor_architecture: ARM64
+
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Verify runner architecture
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+
+          Write-Host "PROCESSOR_ARCHITECTURE=$env:PROCESSOR_ARCHITECTURE"
+          if ($env:PROCESSOR_ARCHITECTURE -ne "${{ matrix.processor_architecture }}") {
+            throw "Expected runner architecture ${{ matrix.processor_architecture }}, but got $env:PROCESSOR_ARCHITECTURE."
+          }
+
+      - name: Install Scoop
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+
+          Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+          $installerPath = Join-Path $env:RUNNER_TEMP 'install-scoop.ps1'
+          Invoke-WebRequest -Uri https://get.scoop.sh -OutFile $installerPath
+          & $installerPath
+          "$env:USERPROFILE\scoop\shims" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+      - name: Prepare local bucket
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+
+          scoop --version
+
+          $sourceBucketPath = Join-Path $env:GITHUB_WORKSPACE 'bucket'
+          $sourceManifestPath = Join-Path $sourceBucketPath 'git-kura.json'
+          if (-not (Test-Path -LiteralPath $sourceManifestPath)) {
+            throw "git-kura manifest was not found in PR checkout: $sourceManifestPath"
+          }
+
+          scoop bucket add philomagi-local https://github.com/tooppoo/catalog-scoop-bucket
+
+          $installedBucketPath = Join-Path $env:USERPROFILE 'scoop\buckets\philomagi-local'
+          $installedBucketManifestDir = Join-Path $installedBucketPath 'bucket'
+          if (-not (Test-Path -LiteralPath $installedBucketManifestDir)) {
+            throw "Scoop bucket directory was not found: $installedBucketManifestDir"
+          }
+
+          Remove-Item -LiteralPath $installedBucketManifestDir -Recurse -Force
+          Copy-Item -LiteralPath $sourceBucketPath -Destination $installedBucketManifestDir -Recurse -Force
+
+          $installedManifestPath = Join-Path $installedBucketManifestDir 'git-kura.json'
+          if (-not (Test-Path -LiteralPath $installedManifestPath)) {
+            throw "git-kura manifest was not copied to installed bucket: $installedManifestPath"
+          }
+
+          scoop bucket list
+
+      - name: Install git-kura from local bucket
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+
+          scoop install philomagi-local/git-kura
+          git-kura --version
+
+          $currentPath = Join-Path $env:USERPROFILE 'scoop\apps\git-kura\current'
+          if (-not (Test-Path -LiteralPath $currentPath)) {
+            throw "git-kura current install path was not found: $currentPath"
+          }
+
+      - name: Uninstall git-kura
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+
+          scoop uninstall git-kura
+
+          $currentPath = Join-Path $env:USERPROFILE 'scoop\apps\git-kura\current'
+          if (Test-Path -LiteralPath $currentPath) {
+            throw "git-kura current install path still exists after uninstall: $currentPath"
+          }
+
+  published-bucket-smoke:
+    name: Published bucket smoke test
+    runs-on: windows-2025
+
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Install Scoop
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+
+          Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+          $installerPath = Join-Path $env:RUNNER_TEMP 'install-scoop.ps1'
+          Invoke-WebRequest -Uri https://get.scoop.sh -OutFile $installerPath
+          & $installerPath
+          "$env:USERPROFILE\scoop\shims" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+      - name: Install git-kura from published bucket
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+
+          scoop --version
+          scoop bucket add philomagi https://github.com/tooppoo/catalog-scoop-bucket
+          scoop bucket list
+          scoop install git-kura
+          git-kura --version
+
+      - name: Uninstall git-kura
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+
+          scoop uninstall git-kura
+
+          $currentPath = Join-Path $env:USERPROFILE 'scoop\apps\git-kura\current'
+          if (Test-Path -LiteralPath $currentPath) {
+            throw "git-kura current install path still exists after uninstall: $currentPath"
+          }
