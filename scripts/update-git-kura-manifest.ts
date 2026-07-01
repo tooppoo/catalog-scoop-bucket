@@ -22,7 +22,14 @@ type ScoopManifest = {
   [key: string]: unknown;
 };
 
-await main();
+main().catch((error: unknown) => {
+  if (error instanceof Error) {
+    console.error(error.stack ?? error.message);
+  } else {
+    console.error(String(error));
+  }
+  process.exit(1);
+});
 
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
