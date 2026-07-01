@@ -1,0 +1,62 @@
+name: Update git-kura Scoop manifest
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: git-kura version to update to, for example 0.1.3 or v0.1.3
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    name: Update git-kura manifest
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update manifest
+        id: update
+        shell: pwsh
+        env:
+          GIT_KURA_VERSION: ${{ inputs.version }}
+        run: |
+          ./scripts/update-git-kura-manifest.ps1 -Version $env:GIT_KURA_VERSION
+
+      - name: Validate generated diff
+        run: |
+          git diff --check
+          git diff -- bucket/git-kura.json
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: Update git-kura Scoop manifest to ${{ steps.update.outputs.manifest_version }}
+          title: Update git-kura Scoop manifest to ${{ steps.update.outputs.manifest_version }}
+          body: |
+            ## Summary
+
+            Updates `bucket/git-kura.json` for git-kura `${{ steps.update.outputs.release_tag }}`.
+
+            The manifest update was generated from the release `checksums.txt` file. The workflow does not download release archives.
+
+            ## Updated fields
+
+            - `version`
+            - `architecture.64bit.url`
+            - `architecture.64bit.hash`
+            - `architecture.arm64.url`
+            - `architecture.arm64.hash`
+
+            Closes #3
+          branch: update/git-kura-${{ steps.update.outputs.manifest_version }}
+          delete-branch: true
+          add-paths: |
+            bucket/git-kura.json
