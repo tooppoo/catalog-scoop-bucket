@@ -7,4 +7,5 @@ Scoop bucket for philomagi CLI tools.
 ```powershell
 scoop bucket add philomagi https://github.com/tooppoo/catalog-scoop-bucket
 scoop install git-kura
+scoop install enozunu
 ```
