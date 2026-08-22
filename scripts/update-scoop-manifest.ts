@@ -117,13 +117,15 @@ export function parseRequestedVersion(
  */
 export function findChecksum(checksums: string, fileName: string): Sha256 {
   const escapedFileName = fileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const match = checksums.match(new RegExp(`^([a-fA-F0-9]{64})\\s+\\*?${escapedFileName}$`, 'm'));
+  const hash = checksums.match(
+    new RegExp(`^([a-fA-F0-9]{64})\\s+\\*?${escapedFileName}$`, 'm'),
+  )?.[1];
 
-  if (match === null) {
+  if (hash === undefined) {
     throw new Error(`Checksum for '${fileName}' was not found in checksums.txt.`);
   }
 
-  return parseSha256(match[1], `${fileName} hash`);
+  return parseSha256(hash, `${fileName} hash`);
 }
 
 /**
