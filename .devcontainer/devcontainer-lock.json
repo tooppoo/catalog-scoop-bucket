@@ -1,0 +1,34 @@
+{
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "version": "1.1.1",
+      "resolved": "ghcr.io/devcontainers/features/github-cli@sha256:94879eebb6a0e4e2f197de9f12db7427cb4a25b82d93c55239ce8c8fc394a1b4",
+      "integrity": "sha256:94879eebb6a0e4e2f197de9f12db7427cb4a25b82d93c55239ce8c8fc394a1b4"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "1.7.1",
+      "resolved": "ghcr.io/devcontainers/features/node@sha256:8c0de46939b61958041700ee89e3493f3b2e4131a06dc46b4d9423427d06e5f6",
+      "integrity": "sha256:8c0de46939b61958041700ee89e3493f3b2e4131a06dc46b4d9423427d06e5f6"
+    },
+    "ghcr.io/tooppoo/catalog-devcontainer-features/enozunu:0": {
+      "version": "0.1.0",
+      "resolved": "ghcr.io/tooppoo/catalog-devcontainer-features/enozunu@sha256:d3de577abcb67df66c9842558c46b68710d59320c6e74e1ae1d9eab4549e03cb",
+      "integrity": "sha256:d3de577abcb67df66c9842558c46b68710d59320c6e74e1ae1d9eab4549e03cb"
+    },
+    "ghcr.io/tooppoo/catalog-devcontainer-features/git-kura:0": {
+      "version": "0.1.1",
+      "resolved": "ghcr.io/tooppoo/catalog-devcontainer-features/git-kura@sha256:ca0f31cfed12be0ef488b16a1430255c668df1ffd78a8514d5a49cc4ada4a1e5",
+      "integrity": "sha256:ca0f31cfed12be0ef488b16a1430255c668df1ffd78a8514d5a49cc4ada4a1e5"
+    },
+    "ghcr.io/tooppoo/catalog-devcontainer-features/rellog:0": {
+      "version": "0.1.0",
+      "resolved": "ghcr.io/tooppoo/catalog-devcontainer-features/rellog@sha256:9437aef39b2a650464bc29d3e8999a46cc87ecd5e31cdcad6c7ba3dc94995528",
+      "integrity": "sha256:9437aef39b2a650464bc29d3e8999a46cc87ecd5e31cdcad6c7ba3dc94995528"
+    },
+    "ghcr.io/tooppoo/catalog-devcontainer-features/reportage:0": {
+      "version": "0.1.0",
+      "resolved": "ghcr.io/tooppoo/catalog-devcontainer-features/reportage@sha256:7d916ddc4d0655aced79d594ee51bda0d45e1117b9f18364f5a1929d9b8a777c",
+      "integrity": "sha256:7d916ddc4d0655aced79d594ee51bda0d45e1117b9f18364f5a1929d9b8a777c"
+    }
+  }
+}
