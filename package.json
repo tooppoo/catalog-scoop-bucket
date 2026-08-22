@@ -1,0 +1,17 @@
+{
+  "name": "catalog-scoop-bucket",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "npm run typecheck && tsx --test scripts/*.spec.ts",
+    "typecheck": "tsc --noEmit",
+    "update:enozunu": "tsx scripts/update-enozunu-manifest.ts",
+    "update:git-kura": "tsx scripts/update-git-kura-manifest.ts"
+  },
+  "devDependencies": {
+    "@types/node": "24.3.0",
+    "tsx": "4.22.4",
+    "typescript": "5.9.2"
+  }
+}
