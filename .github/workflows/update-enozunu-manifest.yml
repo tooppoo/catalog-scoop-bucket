@@ -1,10 +1,10 @@
-name: Update git-kura Scoop manifest
+name: Update enozunu Scoop manifest
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: git-kura version to update to, for example 0.1.3 or v0.1.3
+        description: enozunu version to update to, for example 0.4.0 or v0.4.0
         required: true
         type: string
 
@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   update:
-    name: Update git-kura manifest
+    name: Update enozunu manifest
     runs-on: ubuntu-latest
 
     steps:
@@ -32,25 +32,25 @@ jobs:
       - name: Update manifest
         id: update
         env:
-          GIT_KURA_VERSION: ${{ inputs.version }}
+          ENOZUNU_VERSION: ${{ inputs.version }}
         run: |
-          npx --yes tsx@4.22.4 scripts/update-git-kura-manifest.ts --version "$GIT_KURA_VERSION"
+          npx --yes tsx@4.22.4 scripts/update-enozunu-manifest.ts --version "$ENOZUNU_VERSION"
 
       - name: Validate generated diff
         run: |
           git diff --check
-          git diff -- bucket/git-kura.json
+          git diff -- bucket/enozunu.json
 
       - name: Create pull request
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: Update git-kura Scoop manifest to ${{ steps.update.outputs.manifest_version }}
-          title: Update git-kura Scoop manifest to ${{ steps.update.outputs.manifest_version }}
+          commit-message: Update enozunu Scoop manifest to ${{ steps.update.outputs.manifest_version }}
+          title: Update enozunu Scoop manifest to ${{ steps.update.outputs.manifest_version }}
           body: |
             ## Summary
 
-            Updates `bucket/git-kura.json` for git-kura `${{ steps.update.outputs.release_tag }}`.
+            Updates `bucket/enozunu.json` for enozunu `${{ steps.update.outputs.release_tag }}`.
 
             The manifest update was generated from the release `checksums.txt` file. The workflow does not download release archives.
 
@@ -59,11 +59,7 @@ jobs:
             - `version`
             - `architecture.64bit.url`
             - `architecture.64bit.hash`
-            - `architecture.arm64.url`
-            - `architecture.arm64.hash`
-
-            Closes #3
-          branch: update/git-kura-${{ steps.update.outputs.manifest_version }}
+          branch: update/enozunu-${{ steps.update.outputs.manifest_version }}
           delete-branch: true
           add-paths: |
-            bucket/git-kura.json
+            bucket/enozunu.json
